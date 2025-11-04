@@ -28,7 +28,7 @@ DevTrack is more than a logging tool—it's your personal growth engine. Capture
 ```
 Frontend    →  Next.js 15 • TypeScript • TailwindCSS • shadcn/ui
 Backend     →  Supabase
-Database    →  Supabase
+Database    →  PostgreSQL
 Analytics   →  Chart.js for dynamic visualizations
 Deployment  →  Vercel (Edge Functions) 
 ```
