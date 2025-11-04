@@ -1,0 +1,4 @@
+project_id = "jmweolhfldgvgahovxdy"
+
+[functions.generate-insights]
+verify_jwt = true
