@@ -19,68 +19,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Handle the initial session and hash fragment tokens
-    const initializeAuth = async () => {
-      try {
-        // First, try to get existing session
-        const { data: { session: existingSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Error getting session:", sessionError);
-        }
-
-        // Check if we have tokens in the URL hash (from email confirmation)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-
-        if (accessToken && refreshToken) {
-          // Set session from URL tokens
-          const { data: { session: newSession }, error: setSessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (setSessionError) {
-            console.error("Error setting session from tokens:", setSessionError);
-          } else if (newSession) {
-            setSession(newSession);
-            setUser(newSession.user);
-            
-            // Clean up the URL by removing the hash
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-        } else if (existingSession) {
-          // Use existing session
-          setSession(existingSession);
-          setUser(existingSession.user);
-        }
-      } catch (error) {
-        console.error("Error initializing auth:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    // Set up auth state change listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event);
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Handle specific events
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setLoading(false);
-        } else if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-        }
+        setLoading(false);
       }
     );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
